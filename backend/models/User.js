@@ -34,10 +34,10 @@ const userSchema = mongoose.Schema(
 );
 
 // 2. Hash password BEFORE saving to the database
-userSchema.pre('save', async function (next) {
-  // If the password hasn't been modified (e.g., they just updated their name), move on
+userSchema.pre('save', async function () {
+  // If the password hasn't been modified, just return to move on safely
   if (!this.isModified('password')) {
-    next();
+    return; 
   }
 
   // Generate a 'salt' (random data added to the password to make it harder to crack)

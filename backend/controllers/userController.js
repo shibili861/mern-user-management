@@ -2,8 +2,6 @@
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 
-// @desc    Register a new user
-// @route   POST /api/users
 export const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -39,8 +37,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Authenticate a user & get token (Login)
-// @route   POST /api/users/login
 export const authUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -68,9 +64,6 @@ export const authUser = async (req, res) => {
 
 
 
-
-// @desc    Get user profile
-// @route   GET /api/users/profile
 export const getUserProfile = async (req, res) => {
   // req.user was securely attached by our 'protect' middleware
   const user = await User.findById(req.user._id);
@@ -85,5 +78,52 @@ export const getUserProfile = async (req, res) => {
     });
   } else {
     res.status(404).json({ message: 'User not found' });
+  }
+};
+
+
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    // Find the logged-in user in the database
+    const user = await User.findById(req.user._id);
+
+
+  console.log("enter1")
+    if (user) {
+      // Update the fields (if the user provided new data, use it. Otherwise, keep the old data)
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      
+      // If the user uploaded a new image URL, save it
+      if (req.body.profileImage) {
+        user.profileImage = req.body.profileImage;
+      }
+
+      // If the user provided a new password, it will be automatically hashed by our User model
+      if (req.body.password) {
+        user.password = req.body.password;
+      }
+
+
+      console.log("saving")
+      // Save the updated user to MongoDB
+      const updatedUser = await user.save();
+
+      // Send the updated data back to the frontend
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isAdmin: updatedUser.isAdmin,
+        profileImage: updatedUser.profileImage,
+      });
+      console.log('sending saved dta token to frontend')
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error("PROFILE UPDATE CRASH:", error)
+    res.status(500).json({ message: error.message });
   }
 };
