@@ -1,9 +1,10 @@
 // src/pages/Register.jsx
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react'; // Added useEffect here
 import { useNavigate } from 'react-router-dom';
 import { setCredentials } from '../store/authSlice';
-import api from '../api'; // The waiter we just created!
+import { useDispatch, useSelector } from 'react-redux';
+import api from '../api'; 
+
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ const Register = () => {
   // Grab user state from Redux
   const { userInfo } = useSelector((state) => state.auth);
 
-  // PREVENT BACK-BUTTON BUG: If user is already logged in, redirect them to Home
+  // PREVENT BACK-BUTTON BUG
   useEffect(() => {
     if (userInfo) {
       navigate('/', { replace: true }); 
@@ -33,8 +34,6 @@ const Register = () => {
     try {
       const { data } = await api.post('/api/users', { name, email, password });
       dispatch(setCredentials(data));
-      
-      // Navigate to home and REPLACE history so they can't click "Back" to return here
       navigate('/', { replace: true });
     } catch (error) {
       alert(error.response?.data?.message || 'Registration failed');
@@ -44,8 +43,6 @@ const Register = () => {
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc' }}>
       <h2>Register</h2>
-      
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
       
       <form onSubmit={submitHandler} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <input 
@@ -67,6 +64,13 @@ const Register = () => {
           placeholder="Enter Password" 
           value={password} 
           onChange={(e) => setPassword(e.target.value)} 
+          required 
+        />
+        <input 
+          type="password" 
+          placeholder="Confirm Password" 
+          value={confirmPassword} 
+          onChange={(e) => setConfirmPassword(e.target.value)} 
           required 
         />
         <button type="submit">Sign Up</button>

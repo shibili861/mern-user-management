@@ -82,48 +82,50 @@ export const getUserProfile = async (req, res) => {
 };
 
 
-
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private
 export const updateUserProfile = async (req, res) => {
   try {
-    // Find the logged-in user in the database
     const user = await User.findById(req.user._id);
 
-
-  console.log("enter1")
     if (user) {
-      // Update the fields (if the user provided new data, use it. Otherwise, keep the old data)
+      // Update the fields
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
       
-      // If the user uploaded a new image URL, save it
+      if (req.body.password) {
+        user.password = req.body.password;
+      }
+      
       if (req.body.profileImage) {
         user.profileImage = req.body.profileImage;
       }
 
-      // If the user provided a new password, it will be automatically hashed by our User model
-      if (req.body.password) {
-        user.password = req.body.password;
+      // We wrap the save() in its own try/catch to specifically catch the MongoDB email duplicate error
+      try {
+        const updatedUser = await user.save();
+      generateToken(updatedUser._id, res);
+        // Send back ALL data, crucially including isAdmin and profileImage
+        res.json({
+          _id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          isAdmin: updatedUser.isAdmin, 
+          profileImage: updatedUser.profileImage,
+        });
+      } catch (saveError) {
+        
+        if (saveError.code === 11000) {
+          return res.status(400).json({ message: 'Email is already in use by another account' });
+        }
+        throw saveError; // Pass any other error down to the main catch block
       }
-
-
-      console.log("saving")
-      // Save the updated user to MongoDB
-      const updatedUser = await user.save();
-
-      // Send the updated data back to the frontend
-      res.json({
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        isAdmin: updatedUser.isAdmin,
-        profileImage: updatedUser.profileImage,
-      });
-      console.log('sending saved dta token to frontend')
     } else {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
-    console.error("PROFILE UPDATE CRASH:", error)
-    res.status(500).json({ message: error.message });
+    console.error("Profile Update Crash:", error);
+    res.status(500).json({ message: 'Server error updating profile' });
   }
 };

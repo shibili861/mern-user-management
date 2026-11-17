@@ -37,6 +37,13 @@ const Navbar = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <span>Hello, {userInfo.name}</span>
             
+            {/* NEW: If the logged-in user is an admin, show the Dashboard link */}
+            {userInfo.isAdmin && (
+              <Link to="/admin/dashboard" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold', color: '#f39c12' }}>
+                Dashboard
+              </Link>
+            )}
+            
             {/* Added Profile Link Here */}
             <Link to="/profile" style={{ color: 'white', textDecoration: 'none' }}>Profile</Link>
             

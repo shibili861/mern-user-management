@@ -1,9 +1,10 @@
 // src/pages/Login.jsx
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react'; // Added useEffect here
 import { useNavigate, Link } from 'react-router-dom';
 import { setCredentials } from '../store/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
 import api from '../api'; 
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,21 +15,29 @@ const Login = () => {
   // Grab user state from Redux
   const { userInfo } = useSelector((state) => state.auth);
 
-  // PREVENT BACK-BUTTON BUG: If user is already logged in, force them away from this page
+  // PREVENT BACK-BUTTON BUG
   useEffect(() => {
     if (userInfo) {
-      navigate('/', { replace: true }); 
+      if (userInfo.isAdmin) {
+        navigate('/admin/dashboard', { replace: true }); 
+      } else {
+        navigate('/', { replace: true }); 
+      }
     }
   }, [userInfo, navigate]);
 
-  const submitHandler = async (e) => {
+ const submitHandler = async (e) => {
     e.preventDefault();
     try {
       const { data } = await api.post('/api/users/login', { email, password });
       dispatch(setCredentials(data));
       
-      // Navigate to home and REPLACE the history so they can't click "Back" to return here
-      navigate('/', { replace: true });
+      // Check rank and navigate accordingly
+      if (data.isAdmin) {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (error) {
       alert(error.response?.data?.message || 'Login failed');
     }
@@ -37,8 +46,6 @@ const Login = () => {
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc' }}>
       <h2>Login</h2>
-      
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
       
       <form onSubmit={submitHandler} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <input 
