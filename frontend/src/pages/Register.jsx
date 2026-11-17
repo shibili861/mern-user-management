@@ -4,34 +4,40 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setCredentials } from '../store/authSlice';
 import api from '../api'; // The waiter we just created!
-
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Grab user state from Redux
+  const { userInfo } = useSelector((state) => state.auth);
+
+  // PREVENT BACK-BUTTON BUG: If user is already logged in, redirect them to Home
+  useEffect(() => {
+    if (userInfo) {
+      navigate('/', { replace: true }); 
+    }
+  }, [userInfo, navigate]);
+
   const submitHandler = async (e) => {
     e.preventDefault();
-    setError(null);
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
 
     try {
-      // 1. Send the data to the backend! (This connects frontend to backend)
-      const response = await api.post('/api/users', { name, email, password });
+      const { data } = await api.post('/api/users', { name, email, password });
+      dispatch(setCredentials(data));
       
-      // 2. The backend responds with the user data + JWT token. 
-      // We send this payload to Redux to save it globally.
-      dispatch(setCredentials(response.data));
-      
-      // 3. Redirect the user to the home page
-      navigate('/');
-      
-    } catch (err) {
-      // If the backend throws an error (e.g., "User already exists"), catch it here
-      setError(err.response?.data?.message || err.message);
+      // Navigate to home and REPLACE history so they can't click "Back" to return here
+      navigate('/', { replace: true });
+    } catch (error) {
+      alert(error.response?.data?.message || 'Registration failed');
     }
   };
 

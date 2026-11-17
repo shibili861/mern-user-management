@@ -1,7 +1,6 @@
 // src/store/authSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
-// 1. Check if we already have user data saved in localStorage from a previous visit
 const userInfoFromStorage = localStorage.getItem('userInfo')
   ? JSON.parse(localStorage.getItem('userInfo'))
   : null;

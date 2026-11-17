@@ -36,6 +36,10 @@ const Navbar = () => {
         {userInfo ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <span>Hello, {userInfo.name}</span>
+            
+            {/* Added Profile Link Here */}
+            <Link to="/profile" style={{ color: 'white', textDecoration: 'none' }}>Profile</Link>
+            
             <button onClick={logoutHandler} style={{ padding: '5px 10px', cursor: 'pointer' }}>
               Logout
             </button>
