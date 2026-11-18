@@ -1,8 +1,9 @@
 // src/pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import api from '../api'; // Your global Axios instance with the interceptor
+import api from '../api'; 
 import { setCredentials } from '../store/authSlice';
+import './Profile.css';
 
 const Profile = () => {
   const [name, setName] = useState('');
@@ -10,11 +11,14 @@ const Profile = () => {
   const [password, setPassword] = useState('');
   const [profileImage, setProfileImage] = useState('');
   const [uploading, setUploading] = useState(false);
+  
+  // NEW: UI validation states instead of using alert()
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
 
-  // Pre-fill the form with existing user data
   useEffect(() => {
     if (userInfo) {
       setName(userInfo.name);
@@ -23,35 +27,37 @@ const Profile = () => {
     }
   }, [userInfo]);
 
-  // 1. Handle the Image File Upload to Cloudinary
   const uploadFileHandler = async (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append('image', file);
+    
     setUploading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
 
     try {
-      // Send the file to our backend upload route
       const { data } = await api.post('/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       
-      // Save the returned Cloudinary URL in our local state
       setProfileImage(data.imageUrl);
       setUploading(false);
-      alert('Image uploaded to cloud! Now click Update Profile to save.');
+      setSuccessMsg('Image uploaded to cloud! Click Update Profile to save.');
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Image upload failed');
+      setErrorMsg('Image upload failed. Please try again.');
       setUploading(false);
     }
   };
 
-  // 2. Submit all updated data to MongoDB
   const submitHandler = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+    setSuccessMsg('');
+
     try {
       const { data } = await api.put('/api/users/profile', {
         name,
@@ -60,72 +66,80 @@ const Profile = () => {
         profileImage,
       });
 
-      // Update Redux and localStorage with the new data
       dispatch(setCredentials(data));
-      alert('Profile Updated Successfully!');
+      setSuccessMsg('Profile Updated Successfully!');
+      setPassword(''); // Clear the password field after successful update
     } catch (error) {
       console.error('Update error:', error);
-      alert(error.response?.data?.message || 'Profile update failed');
+      setErrorMsg(error.response?.data?.message || 'Profile update failed');
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc' }}>
-      <h2>My Profile</h2>
-      
-      {profileImage && (
-        <img 
-          src={profileImage} 
-          alt="Profile" 
-          style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', display: 'block', marginBottom: '15px' }} 
-        />
-      )}
-
-      <form onSubmit={submitHandler} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <div>
-          <label>Name</label>
-          <input 
-            type="text" 
-            value={name} 
-            onChange={(e) => setName(e.target.value)} 
-            style={{ width: '100%', marginTop: '5px' }}
-          />
+    <div className="profile-page">
+      <div className="profile-card">
+        <div className="profile-header">
+          <h2>My Profile</h2>
+          <p>Manage your account details and settings.</p>
         </div>
+
+        {/* Validation Messages */}
+        {errorMsg && <div className="message-box error-box">{errorMsg}</div>}
+        {successMsg && <div className="message-box success-box">{successMsg}</div>}
+
+        {/* Profile Image Preview */}
+        <div className="profile-image-container">
+          {profileImage ? (
+            <img src={profileImage} alt="Profile" className="profile-img" />
+          ) : (
+            <div className="profile-img-placeholder">No Image</div>
+          )}
+        </div>
+
+        <form className="profile-form" onSubmit={submitHandler}>
+          <div className="form-group">
+            <label htmlFor="name">Name</label>
+            <input 
+              id="name"
+              type="text" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+              className="form-input"
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input 
+              id="email"
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              className="form-input"
+              required
+            />
+          </div>
+
         
-        <div>
-          <label>Email</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            style={{ width: '100%', marginTop: '5px' }}
-          />
-        </div>
-{/* 
-        <div>
-          <label>New Password (leave blank to keep current)</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            style={{ width: '100%', marginTop: '5px' }}
-          />
-        </div> */}
 
-        <div>
-          <label>Profile Image</label>
-          <input 
-            type="file" 
-            onChange={uploadFileHandler} 
-            style={{ width: '100%', marginTop: '5px' }}
-          />
-          {uploading && <p style={{ fontSize: '12px', color: 'blue' }}>Uploading image to cloud...</p>}
-        </div>
+          <div className="form-group">
+            <label htmlFor="imageUpload">Update Profile Image</label>
+            <input 
+              id="imageUpload"
+              type="file" 
+              onChange={uploadFileHandler} 
+              className="file-input"
+              accept="image/*"
+            />
+            {uploading && <span className="upload-status">Uploading image to cloud...</span>}
+          </div>
 
-        <button type="submit" style={{ padding: '10px', cursor: 'pointer' }}>
-          Update Profile
-        </button>
-      </form>
+          <button type="submit" className="btn-submit" disabled={uploading}>
+            {uploading ? 'Uploading...' : 'Update Profile'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

@@ -81,10 +81,6 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
-
-// @desc    Update user profile
-// @route   PUT /api/users/profile
-// @access  Private
 export const updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -102,24 +98,23 @@ export const updateUserProfile = async (req, res) => {
         user.profileImage = req.body.profileImage;
       }
 
-      // We wrap the save() in its own try/catch to specifically catch the MongoDB email duplicate error
       try {
         const updatedUser = await user.save();
-      generateToken(updatedUser._id, res);
-        // Send back ALL data, crucially including isAdmin and profileImage
+        
+
         res.json({
           _id: updatedUser._id,
           name: updatedUser.name,
           email: updatedUser.email,
           isAdmin: updatedUser.isAdmin, 
           profileImage: updatedUser.profileImage,
+          token: generateToken(updatedUser._id) 
         });
       } catch (saveError) {
-        
         if (saveError.code === 11000) {
           return res.status(400).json({ message: 'Email is already in use by another account' });
         }
-        throw saveError; // Pass any other error down to the main catch block
+        throw saveError; 
       }
     } else {
       res.status(404).json({ message: 'User not found' });

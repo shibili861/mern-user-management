@@ -4,10 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCredentials } from '../store/authSlice';
 import api from '../api';
+import './AdminLogin.css';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  // Added error state to replace alert()
+  const [errorMsg, setErrorMsg] = useState('');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -23,47 +27,84 @@ const AdminLogin = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    setErrorMsg(''); // Clear previous errors
+
     try {
       const { data } = await api.post('/api/users/login', { email, password });
       
+      // Handle backends that return 200 OK but send an error inside the data object
+      if (data.error || data.message === "Invalid credentials") {
+        setErrorMsg(data.error || data.message);
+        return; 
+      }
+      
       // ADMIN VALIDATION: Block normal users from using this login page
       if (!data.isAdmin) {
-        alert('Access Denied: You are not authorized as an Admin.');
-        return; // Stop the function here so they don't log in
+        setErrorMsg('Access Denied: You are not authorized as an Admin.');
+        return; 
       }
 
       dispatch(setCredentials(data));
       navigate('/admin/dashboard', { replace: true });
     } catch (error) {
-      alert(error.response?.data?.message || 'Login failed');
+      console.error("Admin Login Error:", error.response?.data || error.message);
+      
+      const backendMessage = 
+        error.response?.data?.message || 
+        error.response?.data?.error || 
+        'Login failed. Please try again.';
+
+      setErrorMsg(backendMessage);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '2px solid #f39c12', borderRadius: '8px' }}>
-      <h2 style={{ color: '#f39c12', textAlign: 'center' }}>Admin Secure Portal</h2>
-      
-      <form onSubmit={submitHandler} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
-        <input 
-          type="email" 
-          placeholder="Admin Email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          required 
-          style={{ padding: '10px' }}
-        />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          required 
-          style={{ padding: '10px' }}
-        />
-        <button type="submit" style={{ padding: '10px', backgroundColor: '#f39c12', color: 'white', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
-          Admin Login
-        </button>
-      </form>
+    <div className="admin-login-page">
+      <div className="admin-login-card">
+        <div className="admin-login-header">
+          <h2>Admin Secure Portal</h2>
+          <p>Restricted access. Please sign in to continue.</p>
+        </div>
+        
+        {/* Error Message Box */}
+        {errorMsg && (
+          <div className="error-message">
+            {errorMsg}
+          </div>
+        )}
+
+        <form className="admin-login-form" onSubmit={submitHandler}>
+          <div className="form-group">
+            <label htmlFor="email">Admin Email</label>
+            <input 
+              id="email"
+              type="email" 
+              placeholder="Enter admin email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+              className="form-input"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input 
+              id="password"
+              type="password" 
+              placeholder="Enter password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+              className="form-input"
+            />
+          </div>
+          
+          <button type="submit" className="btn-admin-submit">
+            Authorize & Login
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

@@ -1,0 +1,118 @@
+/* src/pages/AdminLogin.css */
+
+.admin-login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 75px);
+  background-color: #f9fafb;
+  padding: 2rem;
+}
+
+.admin-login-card {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+  /* The orange top border gives it that "Secure/Admin" vibe */
+  border-top: 5px solid #f39c12; 
+  border-left: 1px solid #f3f4f6;
+  border-right: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.admin-login-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.admin-login-header h2 {
+  margin: 0 0 0.5rem 0;
+  color: #111827;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.admin-login-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.error-message {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 0.85rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-input {
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: #111827;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Orange focus state to match the Admin theme */
+.form-input:focus {
+  outline: none;
+  border-color: #f39c12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15);
+}
+
+.btn-admin-submit {
+  margin-top: 0.5rem;
+  background-color: #f39c12;
+  color: #ffffff;
+  border: none;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-admin-submit:hover {
+  background-color: #d68910;
+}
+
+.btn-admin-submit:active {
+  transform: scale(0.98);
+}
